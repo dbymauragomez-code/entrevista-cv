@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entrevista para tu CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1B2430;
+    --paper:#F7F5F0;
+    --charcoal:#22282F;
+    --brass:#A9812E;
+    --brass-soft:#E7DCC3;
+    --slate:#6B7684;
+    --hairline:#DDD8CC;
+    --done:#4C7A63;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background:var(--ink);
+    font-family:'Inter',sans-serif;
+    color:var(--charcoal);
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .app{
+    display:flex;
+    width:100%;
+    max-width:1040px;
+    margin:0 auto;
+    background:var(--paper);
+  }
+
+  /* ---------- Sidebar (expediente) ---------- */
+  .dossier{
+    width:260px;
+    flex-shrink:0;
+    background:var(--ink);
+    color:var(--paper);
+    padding:36px 28px;
+    display:flex;
+    flex-direction:column;
+  }
+  .dossier-title{
+    font-family:'Source Serif 4', serif;
+    font-size:22px;
+    font-weight:600;
+    letter-spacing:.2px;
+    margin:0 0 4px;
+  }
+  .dossier-sub{
+    font-size:12.5px;
+    color:#9BA5B4;
+    margin:0 0 32px;
+    line-height:1.5;
+  }
+  .steps{list-style:none;margin:0;padding:0;position:relative;}
+  .steps::before{
+    content:"";
+    position:absolute;
+    left:11px; top:6px; bottom:6px;
+    width:1px;
+    background:#3A4454;
+  }
+  .step{
+    position:relative;
+    padding:0 0 26px 34px;
+    font-size:13.5px;
+    color:#7E8996;
+    transition:color .3s ease;
+  }
+  .step:last-child{padding-bottom:0;}
+  .step-dot{
+    position:absolute;
+    left:0; top:1px;
+    width:23px; height:23px;
+    border-radius:50%;
+    border:1px solid #3A4454;
+    background:var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:#7E8996;
+    transition:all .3s ease;
+  }
+  .step.active{color:var(--paper);}
+  .step.active .step-dot{border-color:var(--brass);color:var(--brass);}
+  .step.done{color:#B9C2CC;}
+  .step.done .step-dot{background:var(--done);border-color:var(--done);color:var(--paper);}
+
+  .dossier-foot{
+    margin-top:auto;
+    padding-top:24px;
+    border-top:1px solid #333e4d;
+    font-size:11.5px;
+    color:#65707E;
+    line-height:1.6;
+  }
+
+  /* ---------- Chat panel ---------- */
+  .chat-wrap{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    min-width:0;
+  }
+  .chat-header{
+    padding:22px 32px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .chat-header h1{
+    font-family:'Source Serif 4', serif;
+    font-size:19px;
+    margin:0 0 3px;
+    font-weight:600;
+  }
+  .chat-header p{
+    margin:0;
+    font-size:13px;
+    color:var(--slate);
+  }
+  .chat-log{
+    flex:1;
+    overflow-y:auto;
+    padding:28px 32px;
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+  }
+  .msg{
+    max-width:78%;
+    padding:12px 16px;
+    border-radius:4px;
+    font-size:14.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .msg.assistant{
+    align-self:flex-start;
+    background:#fff;
+    border:1px solid var(--hairline);
+    border-left:2px solid var(--brass);
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--ink);
+    color:var(--paper);
+  }
+  .msg.typing{
+    align-self:flex-start;
+    background:#fff;
+    border:1px solid var(--hairline);
+    color:var(--slate);
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+  }
+  .dot-anim span{
+    display:inline-block;
+    animation:blink 1.2s infinite;
+  }
+  .dot-anim span:nth-child(2){animation-delay:.2s;}
+  .dot-anim span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  .complete-card{
+    align-self:center;
+    text-align:center;
+    max-width:420px;
+    padding:28px 30px;
+    background:#fff;
+    border:1px solid var(--hairline);
+    border-top:2px solid var(--done);
+  }
+  .complete-card h2{
+    font-family:'Source Serif 4', serif;
+    font-size:18px;
+    margin:0 0 8px;
+  }
+  .complete-card p{
+    font-size:13.5px;
+    color:var(--slate);
+    line-height:1.6;
+    margin:0;
+  }
+
+  .chat-input{
+    display:flex;
+    gap:10px;
+    padding:18px 32px 24px;
+    border-top:1px solid var(--hairline);
+  }
+  .chat-input textarea{
+    flex:1;
+    resize:none;
+    border:1px solid var(--hairline);
+    border-radius:4px;
+    padding:11px 13px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    line-height:1.4;
+    height:46px;
+    background:#fff;
+  }
+  .chat-input textarea:focus{outline:none;border-color:var(--brass);}
+  .chat-input button{
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:4px;
+    padding:0 22px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:500;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  .chat-input button:hover{background:#2c374a;}
+  .chat-input button:disabled{background:var(--slate);cursor:not-allowed;}
+
+  @media (max-width:720px){
+    .app{flex-direction:column;}
+    .dossier{width:100%;padding:20px 24px;}
+    .steps{display:flex;overflow-x:auto;gap:0;}
+    .steps::before{display:none;}
+    .step{padding:0 20px 0 0;white-space:nowrap;}
+    .dossier-foot{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="dossier">
+    <p class="dossier-title">Expediente</p>
+    <p class="dossier-sub">Vamos cubriendo tu perfil por bloques. Responde con calma, una pregunta a la vez.</p>
+    <ul class="steps" id="steps">
+      <li class="step" data-step="1"><span class="step-dot">1</span>Datos personales</li>
+      <li class="step" data-step="2"><span class="step-dot">2</span>Objetivo</li>
+      <li class="step" data-step="3"><span class="step-dot">3</span>Experiencia</li>
+      <li class="step" data-step="4"><span class="step-dot">4</span>Formación</li>
+      <li class="step" data-step="5"><span class="step-dot">5</span>Habilidades</li>
+      <li class="step" data-step="6"><span class="step-dot">6</span>Adicional</li>
+    </ul>
+    <p class="dossier-foot">Tu respuesta se usa solo para preparar tu CV. Un asesor revisará la información antes de contactarte.</p>
+  </aside>
+
+  <div class="chat-wrap">
+    <div class="chat-header">
+      <h1>Entrevista para tu CV</h1>
+      <p>Charla tranquila, sin prisas — dura unos 5-8 minutos.</p>
+    </div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-input" id="chatInputBar">
+      <textarea id="userInput" placeholder="Escribe tu respuesta..." rows="1"></textarea>
+      <button id="sendBtn">Enviar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN
+   ========================================================= */
+// Pega aquí la URL de tu Google Apps Script Web App (ver instrucciones).
+// Mientras esté vacío, la entrevista funciona igual pero el brief NO se envía a ningún sitio.
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymcUJGiPdQp1m0rwQ_iZu_FUmD5zKUVC9w8xRn5Ycr0pOCNAheKDtVbnYFeLxlHUaCJA/exec";
+
+const MODEL = "claude-sonnet-4-6";
+
+// Pega aquí tu propia API key de Anthropic (la consigues en https://console.anthropic.com/settings/keys).
+// IMPORTANTE: esta key queda visible en el código fuente de la página para cualquiera que la inspeccione.
+// Para una prueba está bien, pero pon un límite de gasto mensual en la consola de Anthropic
+// (Settings -> Limits) para evitar sorpresas si alguien copia la key y abusa de ella.
+const ANTHROPIC_API_KEY = "TU_API_KEY_AQUI";
+
+const SYSTEM_PROMPT = `Eres un asistente de RRHH cálido y profesional que entrevista a un candidato en español para construir su currículum. Tono cercano, cercano pero profesional, cercano a una conversación real. Una pregunta por turno, breve, sin listas ni markdown.
+
+Cubre estas 6 áreas EN ORDEN, sin saltarte ninguna y sin mostrar nunca esta lista al usuario:
+1. Datos personales y contacto (nombre completo, ciudad, teléfono, email, LinkedIn si tiene)
+2. Objetivo profesional / tipo de puesto que busca
+3. Experiencia laboral (empresa, cargo, fechas, responsabilidades y logros — repite la pregunta para cada experiencia relevante que mencione, hasta que confirme que no hay más)
+4. Formación académica (título, institución, año)
+5. Habilidades técnicas y blandas, e idiomas
+6. Certificaciones, proyectos personales o cualquier información adicional relevante
+
+Reglas estrictas:
+- Al principio de CADA uno de tus mensajes, en su propia línea y ANTES de cualquier otro texto, escribe la etiqueta [[STEP:n]] donde n es el número (1-6) del área que estás tratando en ese mensaje. Esta etiqueta es interna, nunca la menciones ni la expliques.
+- Si la respuesta del candidato queda incompleta o ambigua, pide amablemente el dato que falta antes de avanzar de área.
+- No repitas ni resumas toda la información recopilada durante la charla.
+- Cuando hayas cubierto las 6 áreas, agradece al candidato de forma cálida, dile que su información ha sido recibida y que el equipo se pondrá en contacto pronto, y termina ESE último mensaje con la etiqueta [[INTERVIEW_COMPLETE]] en su propia línea, al final del todo.`;
+
+const EXTRACTION_PROMPT = `Con toda la conversación anterior, genera AHORA solamente un JSON válido (sin texto adicional, sin markdown, sin backticks) con esta forma exacta:
+{
+  "nombre_completo": "",
+  "ciudad": "",
+  "telefono": "",
+  "email": "",
+  "linkedin": "",
+  "objetivo_profesional": "",
+  "experiencia": [{"empresa":"","cargo":"","fecha_inicio":"","fecha_fin":"","responsabilidades_logros":""}],
+  "formacion": [{"titulo":"","institucion":"","anio":""}],
+  "habilidades_tecnicas": [],
+  "habilidades_blandas": [],
+  "idiomas": [],
+  "certificaciones_proyectos": [],
+  "informacion_adicional": ""
+}
+Usa cadena vacía o array vacío si un dato no se mencionó. No inventes datos.`;
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+let history = [];
+let finished = false;
+
+const chatLog = document.getElementById('chatLog');
+const userInput = document.getElementById('userInput');
+const sendBtn = document.getElementById('sendBtn');
+const inputBar = document.getElementById('chatInputBar');
+
+function addMsg(role, text){
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+function showTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg typing';
+  div.innerHTML = 'Escribiendo<span class="dot-anim"><span>.</span><span>.</span><span>.</span></span>';
+  chatLog.appendChild(div);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return div;
+}
+
+function setStep(n){
+  document.querySelectorAll('.step').forEach(el=>{
+    const s = parseInt(el.dataset.step,10);
+    el.classList.remove('active','done');
+    if(s < n) el.classList.add('done');
+    if(s === n) el.classList.add('active');
+  });
+}
+
+async function callClaude(messages, system){
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+      "anthropic-dangerous-direct-browser-access": "true"
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 1000,
+      system: system,
+      messages: messages
+    })
+  });
+  const data = await res.json();
+  const textBlock = (data.content || []).find(b => b.type === 'text');
+  return textBlock ? textBlock.text : "";
+}
+
+function parseAssistantText(raw){
+  let text = raw;
+  let step = null;
+  let complete = false;
+
+  const stepMatch = text.match(/\[\[STEP:(\d)\]\]/);
+  if(stepMatch){ step = parseInt(stepMatch[1],10); text = text.replace(stepMatch[0], ''); }
+
+  if(text.includes('[[INTERVIEW_COMPLETE]]')){
+    complete = true;
+    text = text.replace('[[INTERVIEW_COMPLETE]]', '');
+  }
+
+  return { text: text.trim(), step, complete };
+}
+
+async function sendBrief(jsonText){
+  if(!APPS_SCRIPT_URL) { console.warn('APPS_SCRIPT_URL no configurada: el brief no se envió a ningún sitio.'); return; }
+  try{
+    let data;
+    try { data = JSON.parse(jsonText); } catch(e){ data = { informacion_adicional: jsonText }; }
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors", // evita que el navegador bloquee la petición por falta de cabeceras CORS en la respuesta
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, // evita preflight CORS con Apps Script
+      body: JSON.stringify(data)
+    });
+  } catch(err){
+    console.error('No se pudo enviar el brief:', err);
+  }
+}
+
+function showCompleteCard(){
+  const card = document.createElement('div');
+  card.className = 'complete-card';
+  card.innerHTML = '<h2>¡Listo!</h2><p>Hemos recibido tu información. Un asesor la revisará y se pondrá en contacto contigo pronto.</p>';
+  chatLog.appendChild(card);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  inputBar.style.display = 'none';
+}
+
+async function handleTurn(userText){
+  if(userText){
+    history.push({ role:'user', content: userText });
+    addMsg('user', userText);
+  }
+
+  const typingEl = showTyping();
+  sendBtn.disabled = true;
+
+  try{
+    const raw = await callClaude(history, SYSTEM_PROMPT);
+    typingEl.remove();
+
+    const { text, step, complete } = parseAssistantText(raw);
+    history.push({ role:'assistant', content: raw });
+
+    if(step) setStep(step);
+    if(text) addMsg('assistant', text);
+
+    if(complete){
+      finished = true;
+      // Llamada silenciosa para extraer el JSON estructurado (nunca se muestra al candidato)
+      const extractionHistory = [...history, { role:'user', content: EXTRACTION_PROMPT }];
+      const jsonRaw = await callClaude(extractionHistory, SYSTEM_PROMPT);
+      await sendBrief(jsonRaw);
+      showCompleteCard();
+      return;
+    }
+  } catch(err){
+    typingEl.remove();
+    addMsg('assistant', 'Ha habido un problema de conexión. ¿Puedes intentar enviar tu respuesta de nuevo?');
+    console.error(err);
+  } finally {
+    sendBtn.disabled = false;
+  }
+}
+
+sendBtn.addEventListener('click', () => {
+  const val = userInput.value.trim();
+  if(!val || finished) return;
+  userInput.value = '';
+  userInput.style.height = '46px';
+  handleTurn(val);
+});
+
+userInput.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+
+userInput.addEventListener('input', () => {
+  userInput.style.height = '46px';
+  userInput.style.height = Math.min(userInput.scrollHeight, 120) + 'px';
+});
+
+// Arranque: el candidato "entra" y el asistente abre la conversación con la primera pregunta
+setStep(1);
+history.push({ role:'user', content: 'Hola, estoy listo para empezar la entrevista para mi CV.' });
+handleTurn(null);
+</script>
+</body>
+</html>
